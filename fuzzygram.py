@@ -43,24 +43,23 @@ def ratio(string1, string2, match="vector"):
             if len(string1) == len(string2):
                 string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
                 string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
+                string2_comp = string2[:]
                 dot = []
                 for entry in string1:
-                    if entry in string2:
+                    if entry in string2_comp:
                         dot.append(1)
-                        string2.remove(entry)
+                        string2_comp.remove(entry)
                     else:
                         dot.append(0)
                 score = sum(dot) / ((len(string1) * len(string2))**(0.5))
                 return score
             else:
                 if len(string1) < len(string2):
-                    sstring = string1
-                    lstring = string2
+                    sstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
+                    lstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
                 elif len(string1) > len(string2):
-                    sstring = string2
-                    lstring = string1
-                sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
-                lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
+                    sstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
+                    lstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
                 lstring_comp = lstring[:]
                 dot = []
                 for entry in sstring:
@@ -69,7 +68,7 @@ def ratio(string1, string2, match="vector"):
                         lstring_comp.remove(entry)
                     else:
                         dot.append(0)
-                return sum(dot) / ((len(string1) * len(string2))**(0.5))
+                return sum(dot) / ((len(sstring) * len(lstring))**(0.5))
         elif match == "strict":
             if len(string1) == len(string2):
                 string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
