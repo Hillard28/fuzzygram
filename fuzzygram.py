@@ -36,9 +36,9 @@ def ratio(string1, string2, match="vector"):
                 sim1.append(string1.count(x))
                 sim2.append(string2.count(x))
             dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
-            norm1 = sum([i**2 for i in sim1])**(0.5)
-            norm2 = sum([i**2 for i in sim2])**(0.5)
-            return dot / (norm1 * norm2)
+            norm1 = sum([i**2 for i in sim1])
+            norm2 = sum([i**2 for i in sim2])
+            return dot / ((norm1 * norm2)**(0.5))
         elif match == "loose":
             if len(string1) == len(string2):
                 string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
@@ -143,9 +143,9 @@ def partial_ratio(string1, string2, match="vector"):
                     sim1.append(string1.count(x))
                     sim2.append(string2.count(x))
                 dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
-                norm1 = sum([i**2 for i in sim1])**(0.5)
-                norm2 = sum([i**2 for i in sim2])**(0.5)
-                scores.append(dot / (norm1 * norm2))
+                norm1 = sum([i**2 for i in sim1])
+                norm2 = sum([i**2 for i in sim2])
+                scores.append(dot / ((norm1 * norm2)**(0.5)))
                 rightpad += 1
                 leftpad += 1
             return max(scores)
