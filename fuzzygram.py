@@ -4,7 +4,7 @@ Currently supports either unigram or moving-bigram matching
 """
 
 
-def ratio(string1, string2, type="vector"):
+def ratio(string1, string2, match="vector"):
     """
     Compare both string inputs in their entirety.
     Type determines what method is used to compare:
@@ -27,7 +27,7 @@ def ratio(string1, string2, type="vector"):
     ):
         return 0.0
     else:
-        if type == "vector":
+        if match == "vector":
             string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
             string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
             unionset = set(set(string1) | set(string2))
@@ -41,7 +41,7 @@ def ratio(string1, string2, type="vector"):
             norm2 = sum([i**2 for i in sim2])**(1/2)
             score = dot / (norm1 * norm2)
             return score
-        elif type == "loose":
+        elif match == "loose":
             if len(string1) == len(string2):
                 string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
                 string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
@@ -77,7 +77,7 @@ def ratio(string1, string2, type="vector"):
                     1 / 2
                 )
                 return score
-        elif type == "strict":
+        elif match == "strict":
             if len(string1) == len(string2):
                 string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
                 string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
@@ -128,54 +128,82 @@ def ratio(string1, string2, type="vector"):
         
 
 
-def partial_ratio(string1, string2):
+def partial_ratio(string1, string2, match="vector"):
     """
     Compare both string inputs within a window determined by the smaller string.
-    For now only the strict method is used, though I plan to implement vector
-    and loose matching as well. Here, the excess length of the larger string is
+    Here, the excess length of the larger string is
     clipped, then sequentially re-added while stripping away corresponding
     bigrams from the left side. In this way, the smaller string is compared to
     a rolling window of the larger string.
     Here, comparison of "xyz" and "xyz excess characters", will return a score
-    of 1, while the non-partial comparisons will factor in the excess.
+    of ~1, while the non-partial comparisons will factor in the excess.
     """
     if string1 == "" and string2 == "":
-        score = 1.0
-        return score
+        return 1.0
     elif (
         (string1 != "" and string2 == "")
         or (string1 == "" and string2 != "")
         or (len(string1) == 1 or len(string2) == 1)
     ):
-        score = 0.0
-        return score
+        return 0.0
     elif len(string1) == len(string2):
-        return ratio(string1, string2)
+        return ratio(string1, string2, match)
     else:
-        if len(string1) < len(string2):
-            sstring = string1
-            lstring = string2
-        elif len(string1) > len(string2):
-            sstring = string2
-            lstring = string1
-        sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
-        lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
-        iterations = len(lstring) - len(sstring)
-        scores = []
-        lstring_hold = []
-        while len(sstring) < len(lstring):
-            lstring_hold.append(lstring.pop(-1))
-        dot = []
-        for entry1, entry2 in zip(sstring, lstring):
-            if entry1 == entry2:
-                dot.append(1)
-            else:
-                dot.append(0)
-        score = sum(dot) / ((len(sstring)) * (len(lstring))) ** (1 / 2)
-        scores.append(score)
-        while iterations > 0:
-            lstring.append(lstring_hold.pop(-1))
-            lstring_hold.insert(0, lstring.pop(0))
+        if match == "vector":
+            if len(string1) < len(string2):
+                sstring = string1
+                lstring = string2
+            elif len(string1) > len(string2):
+                sstring = string2
+                lstring = string1
+            sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
+            lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
+            iterations = len(lstring) - len(sstring)
+            scores = []
+            lstring_hold = []
+            while len(sstring) < len(lstring):
+                lstring_hold.append(lstring.pop(-1))
+            unionset = set(set(sstring) | set(lstring))
+            sim1 = []
+            sim2 = []
+            for x in unionset:
+                sim1.append(string1.count(x))
+                sim2.append(string2.count(x))
+            dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
+            norm1 = sum([i**2 for i in sim1])**(1/2)
+            norm2 = sum([i**2 for i in sim2])**(1/2)
+            score = dot / (norm1 * norm2)
+            scores.append(score)
+            while iterations > 0:
+                lstring.append(lstring_hold.pop(-1))
+                lstring_hold.insert(0, lstring.pop(0))
+                unionset = set(set(sstring) | set(lstring))
+                sim1 = []
+                sim2 = []
+                for x in unionset:
+                    sim1.append(string1.count(x))
+                    sim2.append(string2.count(x))
+                dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
+                norm1 = sum([i**2 for i in sim1])**(1/2)
+                norm2 = sum([i**2 for i in sim2])**(1/2)
+                score = dot / (norm1 * norm2)
+                scores.append(score)
+                iterations -= 1
+            return max(scores)
+        elif match == "strict":
+            if len(string1) < len(string2):
+                sstring = string1
+                lstring = string2
+            elif len(string1) > len(string2):
+                sstring = string2
+                lstring = string1
+            sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
+            lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
+            iterations = len(lstring) - len(sstring)
+            scores = []
+            lstring_hold = []
+            while len(sstring) < len(lstring):
+                lstring_hold.append(lstring.pop(-1))
             dot = []
             for entry1, entry2 in zip(sstring, lstring):
                 if entry1 == entry2:
@@ -184,5 +212,16 @@ def partial_ratio(string1, string2):
                     dot.append(0)
             score = sum(dot) / ((len(sstring)) * (len(lstring))) ** (1 / 2)
             scores.append(score)
-            iterations -= 1
-        return max(scores)
+            while iterations > 0:
+                lstring.append(lstring_hold.pop(-1))
+                lstring_hold.insert(0, lstring.pop(0))
+                dot = []
+                for entry1, entry2 in zip(sstring, lstring):
+                    if entry1 == entry2:
+                        dot.append(1)
+                    else:
+                        dot.append(0)
+                score = sum(dot) / ((len(sstring)) * (len(lstring))) ** (1 / 2)
+                scores.append(score)
+                iterations -= 1
+            return max(scores)
