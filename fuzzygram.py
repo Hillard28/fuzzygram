@@ -158,12 +158,10 @@ def partial_ratio(string1, string2, match="vector"):
                 lstring = string1
             sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
             lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
-            iterations = len(lstring) - len(sstring)
+            rightpad = len(sstring) - len(lstring)
+            leftpad = 0
             scores = []
-            lstring_hold = []
-            while len(sstring) < len(lstring):
-                lstring_hold.append(lstring.pop(-1))
-            unionset = set(set(sstring) | set(lstring))
+            unionset = set(set(sstring) | set(lstring[leftpad:rightpad]))
             sim1 = []
             sim2 = []
             for x in unionset:
@@ -174,10 +172,10 @@ def partial_ratio(string1, string2, match="vector"):
             norm2 = sum([i**2 for i in sim2])**(1/2)
             score = dot / (norm1 * norm2)
             scores.append(score)
-            while iterations > 0:
-                lstring.append(lstring_hold.pop(-1))
-                lstring_hold.insert(0, lstring.pop(0))
-                unionset = set(set(sstring) | set(lstring))
+            rightpad += 1
+            leftpad += 1
+            while rightpad < 0:
+                unionset = set(set(sstring) | set(lstring[leftpad:rightpad]))
                 sim1 = []
                 sim2 = []
                 for x in unionset:
@@ -188,7 +186,8 @@ def partial_ratio(string1, string2, match="vector"):
                 norm2 = sum([i**2 for i in sim2])**(1/2)
                 score = dot / (norm1 * norm2)
                 scores.append(score)
-                iterations -= 1
+                rightpad += 1
+                leftpad += 1
             return max(scores)
         elif match == "strict":
             if len(string1) < len(string2):
@@ -199,29 +198,28 @@ def partial_ratio(string1, string2, match="vector"):
                 lstring = string1
             sstring = [sstring[i : i + 2] for i in range(0, len(sstring) - 1)]
             lstring = [lstring[i : i + 2] for i in range(0, len(lstring) - 1)]
-            iterations = len(lstring) - len(sstring)
+            rightpad = len(sstring) - len(lstring)
+            leftpad = 0
             scores = []
-            lstring_hold = []
-            while len(sstring) < len(lstring):
-                lstring_hold.append(lstring.pop(-1))
             dot = []
-            for entry1, entry2 in zip(sstring, lstring):
+            for entry1, entry2 in zip(sstring, lstring[leftpad:rightpad]):
                 if entry1 == entry2:
                     dot.append(1)
                 else:
                     dot.append(0)
             score = sum(dot) / ((len(sstring)) * (len(lstring))) ** (1 / 2)
             scores.append(score)
-            while iterations > 0:
-                lstring.append(lstring_hold.pop(-1))
-                lstring_hold.insert(0, lstring.pop(0))
+            rightpad += 1
+            leftpad += 1
+            while rightpad < 0:
                 dot = []
-                for entry1, entry2 in zip(sstring, lstring):
+                for entry1, entry2 in zip(sstring, lstring[leftpad:rightpad]):
                     if entry1 == entry2:
                         dot.append(1)
                     else:
                         dot.append(0)
                 score = sum(dot) / ((len(sstring)) * (len(lstring))) ** (1 / 2)
                 scores.append(score)
-                iterations -= 1
+                rightpad += 1
+                leftpad += 1
             return max(scores)
