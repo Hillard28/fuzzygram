@@ -5,6 +5,19 @@ Currently supports either unigram or moving-bigram matching
 
 
 def ratio(string1, string2, type="vector"):
+    """
+    Compare both string inputs in their entirety.
+    Type determines what method is used to compare:
+    Vector: vector decomposition into vectors of moving bigrams, with both
+    strings scored on frequency of the bigrams present in their union
+    Loose: each bigram treated as unique entity, with a score of 1 or 0 being
+    assigned depending on presence. If strings of different length are compared
+    the algorithm compares the bigrams of the smaller string to the larger
+    Strict: order matters. Each string's bigram in a given position is compared
+    to the bigram in the same position of the other string. If strings are of
+    different lengths, the smaller string is rolled across the larger string to
+    compare all possible alignments and the highest score is selected.
+    """
     if string1 == "" and string2 == "":
         return 1.0
     elif (
@@ -90,7 +103,6 @@ def ratio(string1, string2, type="vector"):
                 iterations = len(lstring) - len(sstring)
                 adjust = len(lstring) - len(sstring)
                 scores = []
-                # lstring_hold = []
                 while len(sstring) < len(lstring):
                     sstring.append("")
                 dot = []
@@ -117,6 +129,16 @@ def ratio(string1, string2, type="vector"):
 
 
 def partial_ratio(string1, string2):
+    """
+    Compare both string inputs within a window determined by the smaller string.
+    For now only the strict method is used, though I plan to implement vector
+    and loose matching as well. Here, the excess length of the larger string is
+    clipped, then sequentially re-added while stripping away corresponding
+    bigrams from the left side. In this way, the smaller string is compared to
+    a rolling window of the larger string.
+    Here, comparison of "xyz" and "xyz excess characters", will return a score
+    of 1, while the non-partial comparisons will factor in the excess.
+    """
     if string1 == "" and string2 == "":
         score = 1.0
         return score
