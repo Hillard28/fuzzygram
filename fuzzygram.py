@@ -139,8 +139,8 @@ def partial_ratio(string1, string2, match="vector"):
                 sim1 = []
                 sim2 = []
                 for x in set(set(sstring) | set(lstring[leftpad:rightpad])):
-                    sim1.append(string1.count(x))
-                    sim2.append(string2.count(x))
+                    sim1.append(sstring.count(x))
+                    sim2.append(lstring[leftpad:rightpad].count(x))
                 dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
                 norm1 = sum([i**2 for i in sim1])
                 norm2 = sum([i**2 for i in sim2])
