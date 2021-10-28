@@ -2,7 +2,13 @@
 Tool for measuring string similarities based on Jaccard Similarity
 Currently supports either unigram or moving-bigram matching
 """
+from itertools import tee
+from collections import Counter
 
+def bigram(iterable):
+    c1, c2 = tee(iterable)
+    next(c2, None)
+    return tuple(zip(c1, c2))
 
 def ratio(string1, string2, match="vector"):
     """
@@ -28,16 +34,11 @@ def ratio(string1, string2, match="vector"):
         return 0.0
     else:
         if match == "vector":
-            string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-            string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-            sim1 = []
-            sim2 = []
-            for x in set(set(string1) | set(string2)):
-                sim1.append(string1.count(x))
-                sim2.append(string2.count(x))
-            dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
-            norm1 = sum([i**2 for i in sim1])
-            norm2 = sum([i**2 for i in sim2])
+            string1 = Counter(bigram(string1))
+            string2 = Counter(bigram(string2))
+            dot = sum(string1[i]*string2[i] for i in string1.keys() | string2.keys())
+            norm1 = sum([i**2 for i in string1.values()])
+            norm2 = sum([i**2 for i in string2.values()])
             return dot / ((norm1 * norm2)**(0.5))
         elif match == "loose":
             if len(string1) == len(string2):
@@ -71,8 +72,8 @@ def ratio(string1, string2, match="vector"):
                 return sum(dot) / ((len(sstring) * len(lstring))**(0.5))
         elif match == "strict":
             if len(string1) == len(string2):
-                string1 = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-                string2 = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
+                string1 = bigram(string1)
+                string2 = bigram(string2)
                 dot = []
                 for entry1, entry2 in zip(string1, string2):
                     if entry1 == entry2:
@@ -82,11 +83,11 @@ def ratio(string1, string2, match="vector"):
                 return sum(dot) / ((len(string1) * len(string2))**(0.5))
             else:
                 if len(string1) < len(string2):
-                    sstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-                    lstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-                elif len(string1) > len(string2):
-                    sstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-                    lstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
+                    sstring = bigram(string1)
+                    lstring = bigram(string2)
+                else:
+                    sstring = bigram(string2)
+                    lstring = bigram(string1)
                 rightpad = len(sstring) - len(lstring)
                 leftpad = 0
                 scores = []
@@ -125,39 +126,27 @@ def partial_ratio(string1, string2, match="vector"):
     elif len(string1) == len(string2):
         return ratio(string1, string2, match)
     else:
+        if len(string1) < len(string2):
+            sstring = bigram(string1)
+            lstring = bigram(string2)
+        else:
+            sstring = bigram(string2)
+            lstring = bigram(string1)
+        rightpad = len(sstring) - len(lstring)
+        leftpad = 0
+        scores = []
         if match == "vector":
-            if len(string1) < len(string2):
-                sstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-                lstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-            elif len(string1) > len(string2):
-                sstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-                lstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-            rightpad = len(sstring) - len(lstring)
-            leftpad = 0
-            scores = []
             while rightpad < 0:
-                sim1 = []
-                sim2 = []
-                for x in set(set(sstring) | set(lstring[leftpad:rightpad])):
-                    sim1.append(sstring.count(x))
-                    sim2.append(lstring[leftpad:rightpad].count(x))
-                dot = sum(i[0]*i[1] for i in zip(sim1, sim2))
-                norm1 = sum([i**2 for i in sim1])
-                norm2 = sum([i**2 for i in sim2])
-                scores.append(dot / ((norm1 * norm2)**(0.5)))
+                scount = Counter(sstring)
+                lcount = Counter(lstring[leftpad:rightpad])
+                dot = sum(scount[i]*lcount[i] for i in scount.keys() | lcount.keys())
+                snorm = sum([i**2 for i in scount.values()])
+                lnorm = sum([i**2 for i in lcount.values()])
+                scores.append(dot / ((snorm * lnorm)**(0.5)))
                 rightpad += 1
                 leftpad += 1
             return max(scores)
         elif match == "strict":
-            if len(string1) < len(string2):
-                sstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-                lstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-            elif len(string1) > len(string2):
-                sstring = [string2[i : i + 2] for i in range(0, len(string2) - 1)]
-                lstring = [string1[i : i + 2] for i in range(0, len(string1) - 1)]
-            rightpad = len(sstring) - len(lstring)
-            leftpad = 0
-            scores = []
             while rightpad < 0:
                 dot = []
                 for entry1, entry2 in zip(sstring, lstring[leftpad:rightpad]):
