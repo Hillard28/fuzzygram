@@ -2,7 +2,6 @@
 Tool for measuring string similarities based on Jaccard Similarity
 Currently supports either unigram or moving-bigram matching
 """
-from itertools import tee
 from collections import Counter
 
 def bigram(iterable):
