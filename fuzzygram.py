@@ -6,9 +6,7 @@ from itertools import tee
 from collections import Counter
 
 def bigram(iterable):
-    c1, c2 = tee(iterable)
-    next(c2, None)
-    return tuple(zip(c1, c2))
+    return tuple(zip(iterable, iterable[1:]))
 
 def ratio(string1, string2, match="vector"):
     """
@@ -36,7 +34,7 @@ def ratio(string1, string2, match="vector"):
         if match == "vector":
             string1 = Counter(bigram(string1))
             string2 = Counter(bigram(string2))
-            dot = sum(string1[i]*string2[i] for i in string1.keys() | string2.keys())
+            dot = sum(string1[i]*string2[i] for i in string1.keys())
             norm1 = sum([i**2 for i in string1.values()])
             norm2 = sum([i**2 for i in string2.values()])
             return dot / ((norm1 * norm2)**(0.5))
@@ -141,7 +139,7 @@ def partial_ratio(string1, string2, match="vector"):
             scores = []
             while rightpad < 0:
                 lcount = Counter(lstring[leftpad:rightpad])
-                dot = sum(scount[i]*lcount[i] for i in scount.keys() | lcount.keys())
+                dot = sum(scount[i]*lcount[i] for i in scount.keys())
                 snorm = sum([i**2 for i in scount.values()])
                 lnorm = sum([i**2 for i in lcount.values()])
                 scores.append(dot / ((snorm * lnorm)**(0.5)))
