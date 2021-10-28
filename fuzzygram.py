@@ -126,18 +126,20 @@ def partial_ratio(string1, string2, match="vector"):
     elif len(string1) == len(string2):
         return ratio(string1, string2, match)
     else:
-        if len(string1) < len(string2):
-            sstring = bigram(string1)
-            lstring = bigram(string2)
-        else:
-            sstring = bigram(string2)
-            lstring = bigram(string1)
-        rightpad = len(sstring) - len(lstring)
         leftpad = 0
         scores = []
         if match == "vector":
+            if len(string1) < len(string2):
+                scount = Counter(bigram(string1))
+                lstring = bigram(string2)
+                rightpad = len(string1) - len(string2)
+            else:
+                scount = Counter(bigram(string2))
+                lstring = bigram(string1)
+                rightpad = len(string2) - len(string1)
+            leftpad = 0
+            scores = []
             while rightpad < 0:
-                scount = Counter(sstring)
                 lcount = Counter(lstring[leftpad:rightpad])
                 dot = sum(scount[i]*lcount[i] for i in scount.keys() | lcount.keys())
                 snorm = sum([i**2 for i in scount.values()])
@@ -147,6 +149,13 @@ def partial_ratio(string1, string2, match="vector"):
                 leftpad += 1
             return max(scores)
         elif match == "strict":
+            if len(string1) < len(string2):
+                sstring = bigram(string1)
+                lstring = bigram(string2)
+            else:
+                sstring = bigram(string2)
+                lstring = bigram(string1)
+            rightpad = len(sstring) - len(lstring)
             while rightpad < 0:
                 dot = []
                 for entry1, entry2 in zip(sstring, lstring[leftpad:rightpad]):
