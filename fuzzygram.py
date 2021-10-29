@@ -145,7 +145,7 @@ def partial_ratio(string1, string2, match="vector"):
                 sstring = string2
                 lstring = string1
             bigram = Counter(pairwise(sstring))
-            bigram_norm = sum(i**2 for i in bigram.values())
+            snorm = sum(i**2 for i in bigram.values())
             window_size = len(sstring)
             target = Counter(pairwise(lstring[:window_size]))
             target[(None, lstring[0])] += 1
@@ -155,7 +155,7 @@ def partial_ratio(string1, string2, match="vector"):
                 target[old] -= 1
                 target[new] += 1
                 dot = sum(count*target[key] for key, count in bigram.items())
-                norm = (sum(i**2 for i in target.values() if i > 0) * bigram_norm) ** 0.5
+                norm = (sum(i**2 for i in target.values() if i > 0) * snorm) ** 0.5
                 results[index] = dot/norm
             return max(results.values())
         elif match == "strict":
