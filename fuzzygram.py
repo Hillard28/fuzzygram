@@ -3,9 +3,21 @@ Tool for measuring string similarities based on Jaccard Similarity
 Currently supports either unigram or moving-bigram matching
 """
 from collections import Counter
+from itertools import tee, chain
 
-def bigram(iterable):
-    return tuple(zip(iterable, iterable[1:]))
+def window(iterable, width):
+    a, b, c, d = tee(iterable, 4)
+    a = chain([None], a) # prepend None
+    next(d, None)
+    for x in range(width - 2):
+        next(c, None)
+        next(d, None)
+    return zip(zip(a, b), zip(c, d))
+
+def pairwise(iterable):
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 def ratio(string1, string2, match="vector"):
     """
@@ -31,8 +43,8 @@ def ratio(string1, string2, match="vector"):
         return 0.0
     else:
         if match == "vector":
-            string1 = Counter(bigram(string1))
-            string2 = Counter(bigram(string2))
+            string1 = Counter(pairwise(string1))
+            string2 = Counter(pairwise(string2))
             dot = sum(string1[i]*string2[i] for i in string1.keys())
             norm1 = sum([i**2 for i in string1.values()])
             norm2 = sum([i**2 for i in string2.values()])
@@ -69,8 +81,8 @@ def ratio(string1, string2, match="vector"):
                 return sum(dot) / ((len(sstring) * len(lstring))**(0.5))
         elif match == "strict":
             if len(string1) == len(string2):
-                string1 = bigram(string1)
-                string2 = bigram(string2)
+                string1 = pairwise(string1)
+                string2 = pairwise(string2)
                 dot = []
                 for entry1, entry2 in zip(string1, string2):
                     if entry1 == entry2:
@@ -80,15 +92,15 @@ def ratio(string1, string2, match="vector"):
                 return sum(dot) / ((len(string1) * len(string2))**(0.5))
             else:
                 if len(string1) < len(string2):
-                    sstring = bigram(string1)
-                    lstring = bigram(string2)
+                    sstring = pairwise(string1)
+                    lstring = pairwise(string2)
                 else:
-                    sstring = bigram(string2)
-                    lstring = bigram(string1)
+                    sstring = pairwise(string2)
+                    lstring = pairwise(string1)
                 rightpad = len(sstring) - len(lstring)
                 leftpad = 0
                 scores = []
-                while rightpad < 0:
+                while rightpad <= 0:
                     dot = []
                     for entry1, entry2 in zip(sstring, lstring):
                         if entry1 == entry2:
@@ -127,24 +139,25 @@ def partial_ratio(string1, string2, match="vector"):
         scores = []
         if match == "vector":
             if len(string1) < len(string2):
-                scount = Counter(bigram(string1))
-                lstring = bigram(string2)
-                rightpad = len(string1) - len(string2)
+                sstring = string1
+                lstring = string2
             else:
-                scount = Counter(bigram(string2))
-                lstring = bigram(string1)
-                rightpad = len(string2) - len(string1)
-            leftpad = 0
-            scores = []
-            while rightpad < 0:
-                lcount = Counter(lstring[leftpad:rightpad])
-                dot = sum(scount[i]*lcount[i] for i in scount.keys())
-                snorm = sum([i**2 for i in scount.values()])
-                lnorm = sum([i**2 for i in lcount.values()])
-                scores.append(dot / ((snorm * lnorm)**(0.5)))
-                rightpad += 1
-                leftpad += 1
-            return max(scores)
+                sstring = string2
+                lstring = string1
+            bigram = Counter(pairwise(sstring))
+            bigram_norm = sum(i**2 for i in bigram.values())
+            window_size = len(sstring)
+            target = Counter(pairwise(lstring[:window_size]))
+            target[(None, lstring[0])] += 1
+            target[(lstring[window_size - 2], lstring[window_size - 1])] -= 1
+            results = {}
+            for index, (old, new) in enumerate(window(lstring, window_size)):
+                target[old] -= 1
+                target[new] += 1
+                dot = sum(count*target[key] for key, count in bigram.items())
+                norm = (sum(i**2 for i in target.values() if i > 0) * bigram_norm) ** 0.5
+                results[index] = dot/norm
+            return max(results.values())
         elif match == "strict":
             if len(string1) < len(string2):
                 sstring = bigram(string1)
@@ -153,7 +166,7 @@ def partial_ratio(string1, string2, match="vector"):
                 sstring = bigram(string2)
                 lstring = bigram(string1)
             rightpad = len(sstring) - len(lstring)
-            while rightpad < 0:
+            while rightpad <= 0:
                 dot = []
                 for entry1, entry2 in zip(sstring, lstring[leftpad:rightpad]):
                     if entry1 == entry2:
