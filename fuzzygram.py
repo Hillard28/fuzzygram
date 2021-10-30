@@ -45,12 +45,13 @@ def ratio(string1, string2, match="vector"):
 
 def partial_ratio(string1, string2, match="vector"):
     """
-    Compare both string inputs within a window determined by the smaller string.
-    The excess length of the larger string is clipped, then sequentially re-added
-    while stripping away corresponding bigrams from the left side. In this way,
-    the smaller string is compared to a rolling window of the larger string.
-    Here, comparison of "xyz" and "xyz excess characters", will return a score
-    of ~1, while the non-partial comparisons will factor in the excess.
+    Compare both string inputs within a window determined by the smaller
+    string. The excess length of the larger string is clipped, then
+    sequentially re-added while stripping away corresponding bigrams from the
+    left side. In this way, the smaller string is compared to a rolling window
+    of the larger string. Here, comparison of "xyz" and "xyz excess", will
+    return a scoreof ~1, while the non-partial comparisons will factor in the
+    excess.
     """
     if string1 == "" and string2 == "":
         return 1.0
