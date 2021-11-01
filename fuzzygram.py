@@ -25,7 +25,7 @@ def pairwise(iterable):
 def ratio(string1, string2, type="vector"):
     """
     Compare both string inputs in their entirety.
-    "match" will eventually determine what method is used to compare:
+    "type" will eventually determine what method is used to compare:
     Vector: decomposition of strings into vectors of moving bigrams, with
     both strings scored on frequency of the bigrams present in their union
     """
