@@ -88,3 +88,18 @@ def partial_ratio(string1, string2, type="vector", method="window"):
                     norm = (sum(i ** 2 for i in target.values() if i > 0) * snorm) ** 0.5
                     results[index] = dot / norm
                 return max(results.values())
+            elif method == "short":
+                if len(string1) < len(string2):
+                    sstring = pairwise(string1)
+                    lstring = list(pairwise(string2))
+                else:
+                    sstring = pairwise(string2)
+                    lstring = list(pairwise(string1))
+                results = []
+                for bigram in sstring:
+                    if bigram in lstring:
+                        results.append(1)
+                        lstring.remove(bigram)
+                    else:
+                        results.append(0)
+                return sum(results) / len(results)
