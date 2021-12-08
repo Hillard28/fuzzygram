@@ -26,7 +26,7 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         ">"
     ]
     
-    if type(target) == str:
+    if target is str:
         # Convert to uppercase
         target = target.upper()
         
@@ -51,6 +51,23 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         print("Removing occurrences of \"The\"...")
         target = re.sub("^THE ", "", target)
         target = re.sub(" THE\s*$", "", target)
+        
+        # Remove spaces between single letter words
+        print("Removing spaces from beginning of firm names...")
+        search = re.search("^([A-Z] ([A-Z] )+[A-Z]) ", target)
+        if search is not None:
+            name = search[0].replace(" ", "")
+            target = name + re.sub("^[A-Z] ([A-Z] )+[A-Z] ", " ", target)
+        else:
+            search = re.search("^([A-Z] [A-Z]) ", target)
+            if search is not None:
+                name = search[0].replace(" ", "")
+                target = name + re.sub("^[A-Z] [A-Z] ", " ", target)
+            else:
+                search = re.search("^([A-Z] & [A-Z]) ", target)
+                if search is not None:
+                    name = search[0].replace(" ", "")
+                    target = name + re.sub("^[A-Z] & [A-Z] ", " ", target)
         
         # Clean organizational forms
         print("Standardizing organizational forms...")
