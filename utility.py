@@ -119,13 +119,13 @@ def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
             retarget = re.sub(" MKT( |$)", " MARKET ", retarget)
             retarget = re.sub(" SR?VCS( |$)", " SERVICES ", retarget)
         
-        # Remove legal classifications
-        if nolegal == True:
-            retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LTD)\s*$", "", retarget)
-        
         # Strip white space
         retarget = retarget.strip()
         retarget = " ".join(retarget.split())
+        
+        # Remove legal classifications
+        if nolegal == True:
+            retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LTD)\s*$", "", retarget)
         
         return retarget
     
@@ -177,6 +177,10 @@ def stn_street(target):
         retarget = retarget.replace("NINTH", "9")
         retarget = retarget.replace("TENTH", "10")
         
+        # Strip white space
+        retarget = retarget.strip()
+        retarget = " ".join(retarget.split())
+        
         # Remove numbers after street name
         if re.match(" (AVE|BLVD|CT|DR|HWY|LN|PKWY|PL|PLZ|RD|SR|ST|TER|TRL|WAY) [-0-9]+\s*$", retarget) is not None:
             retarget = re.sub(" [0-9]+\s*$", "", retarget)
@@ -196,10 +200,6 @@ def stn_street(target):
         re.sub(" NORTH WEST( |$)", " E ", retarget)
         re.sub(" SOUTHWEST( |$)", " E ", retarget)
         re.sub(" SOUTH WEST( |$)", " E ", retarget)
-        
-        # Strip white space
-        retarget = retarget.strip()
-        retarget = " ".join(retarget.split())
         
         return retarget
     
