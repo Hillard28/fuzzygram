@@ -1,6 +1,6 @@
 import re
 
-def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
+def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
     symbols = [
         ",",
         ".",
