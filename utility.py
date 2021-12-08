@@ -1,3 +1,6 @@
+"""
+Tool for processing strings prior to fuzzy matching with fuzzygram
+"""
 import re
 
 def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
