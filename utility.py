@@ -41,12 +41,14 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         retarget = re.sub(" D\/B\/$", " DBA", retarget)
         retarget = re.sub(" F\/K\/A/?( |$)", " FKA ", retarget)
         
-        # Remove text after DBA/FKA
-        retarget = re.sub(" (DBA|FKA)( |$).*", "", retarget)
+        # Remove symbols
+        for symbol in symbols:
+            retarget = retarget.replace(symbol, "")
         
-        # Remove "the"
-        retarget = re.sub("^THE ", "", retarget)
-        retarget = re.sub(" THE\s*$", "", retarget)
+        # Replace +
+        retarget = re.sub("^A \+ ", "A+ ", retarget)
+        if re.match("^A\+ ", retarget) is None:
+            retarget = retarget.replace("+", " & ")
         
         # Remove spaces between single letter words
         search = re.search("^([A-Z] ([A-Z] )+[A-Z]) ", retarget)
@@ -63,6 +65,13 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
                 if search is not None:
                     name = search[0].replace(" ", "")
                     retarget = name + re.sub("^[A-Z] & [A-Z] ", " ", retarget)
+        
+        # Remove text after DBA/FKA
+        retarget = re.sub(" (DBA|FKA)( |$).*", "", retarget)
+        
+        # Remove "the"
+        retarget = re.sub("^THE ", "", retarget)
+        retarget = re.sub(" THE\s*$", "", retarget)
         
         # Clean organizational forms
         retarget = re.sub(" COMPANY( |$)", " CO ", retarget)
@@ -89,15 +98,6 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         retarget = re.sub("( A)? STATE SAVINGS BANK *$", " SSB", retarget)
         retarget = re.sub(" S S B *$", " SSB", retarget)
         retarget = re.sub("(^| )U S A( |$)", " USA ", retarget)
-        
-        # Remove symbols
-        for symbol in symbols:
-            retarget = retarget.replace(symbol, "")
-        
-        # Replace +
-        retarget = re.sub("^A \+ ", "A+ ", retarget)
-        if re.match("^A\+ ", retarget) is None:
-            retarget = retarget.replace("+", " & ")
         
         # Replace AND
         retarget = re.sub(" AND ", " & ", retarget)
