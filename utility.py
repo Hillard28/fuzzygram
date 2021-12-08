@@ -205,3 +205,46 @@ def stn_street(target):
     
     else:
         return target
+
+def stn_phone(target):
+    symbols = [
+        ",",
+        ".",
+        ":",
+        ";",
+        "(",
+        ")",
+        "*",
+        "\\",
+        "-",
+        "?",
+        "\'",
+        "\"",
+        "[",
+        "]",
+        "{",
+        "}",
+        "!",
+        "_",
+        "/",
+        "`",
+        "<",
+        ">"
+    ]
+    
+    if type(target) is str:
+        # Convert to uppercase
+        retarget = target.upper()
+        
+        # Remove symbols
+        for symbol in symbols:
+            retarget = retarget.replace(symbol, "")
+        
+        # Strip white space
+        retarget = retarget.strip()
+        retarget = "".join(retarget.split())
+        
+        return retarget
+    
+    else:
+        return target
