@@ -123,3 +123,5 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         print("Removing whitespace...")
         target = target.strip()
         target = " ".join(target.split())
+
+    return target
