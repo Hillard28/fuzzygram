@@ -96,9 +96,21 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         
         # Replace +
         retarget = re.sub("^A \+ ", "A+ ", retarget)
-        if bool(re.match("^A\+ ", retarget)):
-            retarget = re.sub("+", " & ", retarget)
+        if re.match("^A\+ ", retarget) is None:
+            retarget = retarget.replace("+", " & ")
         
+        # Replace AND
+        retarget = re.sub(" AND ", " & ", retarget)
+        retarget = re.sub(" &AMP ", " & ", retarget)
+        retarget = re.sub("&APOS ", "", retarget)
+        
+        # Remove #
+        retarget = retarget.replace("#", "")
+        
+        # Replace @
+        retarget = retarget.replace("@", "AT")
+        
+        # Unabbreviate
         if unabbreviate == True:
             retarget = re.sub(" ASSN( |$)", " ASSOCIATION ", retarget)
             retarget = re.sub(" BCH( |$)", " BEACH ", retarget)
@@ -107,9 +119,11 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
             retarget = re.sub(" MKT( |$)", " MARKET ", retarget)
             retarget = re.sub(" SR?VCS( |$)", " SERVICES ", retarget)
         
+        # Remove legal classifications
         if nolegal == True:
             retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LTD)\s*$", "", retarget)
         
+        # Strip white space
         retarget = retarget.strip()
         retarget = " ".join(retarget.split())
         
