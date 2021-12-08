@@ -32,11 +32,9 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         
         # Remove characters in parentheses
         if parentheses == True:
-            print("Removing substrings in parentheses...")
             retarget = re.sub("[\(\[].*?[\)\]]", "", retarget)
         
         # Keep A/C, C/O, D/B/A, and F/K/A together before replace
-        print("Standardizing fictitious name forms...")
         retarget = re.sub(" A\/C( |$)", " AC ", retarget)
         retarget = re.sub(" C\/O( |$)", " CO ", retarget)
         retarget = re.sub(" D\/B\/A/?( |$)", " DBA ", retarget)
@@ -44,16 +42,13 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         retarget = re.sub(" F\/K\/A/?( |$)", " FKA ", retarget)
         
         # Remove text after DBA/FKA
-        print("Removing text after fictitious name forms...")
         retarget = re.sub(" (DBA|FKA)( |$).*", "", retarget)
         
         # Remove "the"
-        print("Removing occurrences of \"The\"...")
         retarget = re.sub("^THE ", "", retarget)
         retarget = re.sub(" THE\s*$", "", retarget)
         
         # Remove spaces between single letter words
-        print("Removing spaces from beginning of firm names...")
         search = re.search("^([A-Z] ([A-Z] )+[A-Z]) ", retarget)
         if search is not None:
             name = search[0].replace(" ", "")
@@ -70,7 +65,6 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
                     retarget = name + re.sub("^[A-Z] & [A-Z] ", " ", retarget)
         
         # Clean organizational forms
-        print("Standardizing organizational forms...")
         retarget = re.sub(" COMPANY( |$)", " CO ", retarget)
         retarget = re.sub(" CORPORATION( |$)", " CORP ", retarget)
         retarget = re.sub(" FEDERAL CREDIT UNION$", " FCU", retarget)
@@ -97,18 +91,15 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
         retarget = re.sub("(^| )U S A( |$)", " USA ", retarget)
         
         # Remove symbols
-        print("Replacing symbols...")
         for symbol in symbols:
             retarget = retarget.replace(symbol, "")
         
         # Replace +
-        print("Replacing \"+\" with \"&\"...")
         retarget = re.sub("^A \+ ", "A+ ", retarget)
         if bool(re.match("^A\+ ", retarget)):
             retarget = re.sub("+", " & ", retarget)
         
         if unabbreviate == True:
-            print("Unabbreviating...")
             retarget = re.sub(" ASSN( |$)", " ASSOCIATION ", retarget)
             retarget = re.sub(" BCH( |$)", " BEACH ", retarget)
             retarget = re.sub(" INTL( |$)", " INTERNATIONAL ", retarget)
@@ -117,10 +108,8 @@ def stn_firm_name(target, unabbreviate=False, nolegal=False, parentheses=False):
             retarget = re.sub(" SR?VCS( |$)", " SERVICES ", retarget)
         
         if nolegal == True:
-            print("Removing legal forms...")
             retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LTD)\s*$", "", retarget)
         
-        print("Removing whitespace...")
         retarget = retarget.strip()
         retarget = " ".join(retarget.split())
         
