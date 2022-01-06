@@ -128,7 +128,7 @@ def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
         
         # Remove legal classifications
         if nolegal == True:
-            retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LTD)\s*$", "", retarget)
+            retarget = re.sub(" (CORP|CO|INC|LLC|LLLP|LLP|LP|LTD)\s*$", "", retarget)
         
         return retarget
     
