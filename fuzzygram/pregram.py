@@ -141,11 +141,12 @@ def stn_street(target):
         retarget = target.upper()
         
         # Remove suite numbers
-        retarget = re.sub(" (APT|FLOOR|STE|SUITE|UNIT).*", "", retarget)
+        retarget = re.sub(" (APT|FLOOR|FL|STE|SUITE|UNIT).*", "", retarget)
         
         # Remove punctuation
         retarget = retarget.replace("#", "")
         retarget = retarget.replace(".", "")
+        retarget = retarget.replace(",", "")
         
         # Replace street designations
         retarget = re.sub(" AVENUE( |$)", " AVE ", retarget)
@@ -180,12 +181,20 @@ def stn_street(target):
         retarget = retarget.replace("NINTH", "9")
         retarget = retarget.replace("TENTH", "10")
         
+        # Remove PO Box
+        retarget = retarget.replace("P O BOX", "")
+        retarget = retarget.replace("PO BOX", "")
+        
+        # Remove only numbers
+        if retarget.isdigit() == True:
+            retarget = ""
+        
         # Strip white space
         retarget = retarget.strip()
         retarget = " ".join(retarget.split())
         
         # Remove numbers after street name
-        if re.match(" (AVE|BLVD|CT|DR|HWY|LN|PKWY|PL|PLZ|RD|SR|ST|TER|TRL|WAY) [-0-9]+\s*$", retarget) is not None:
+        if re.search(" (AVE|BLVD|CT|DR|HWY|LN|PKWY|PL|PLZ|RD|SR|ST|TER|TRL|WAY) [0-9]+\s*$", retarget) is not None:
             retarget = re.sub(" [0-9]+\s*$", "", retarget)
         
         # Abbreviate cardinal directions
