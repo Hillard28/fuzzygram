@@ -185,10 +185,6 @@ def stn_street(target):
         retarget = retarget.replace("P O BOX", "")
         retarget = retarget.replace("PO BOX", "")
         
-        # Remove only numbers
-        if retarget.isdigit() == True:
-            retarget = ""
-        
         # Strip white space
         retarget = retarget.strip()
         retarget = " ".join(retarget.split())
@@ -212,6 +208,10 @@ def stn_street(target):
         re.sub(" NORTH WEST( |$)", " E ", retarget)
         re.sub(" SOUTHWEST( |$)", " E ", retarget)
         re.sub(" SOUTH WEST( |$)", " E ", retarget)
+        
+        # Remove only numbers
+        if retarget.isdigit() == True:
+            retarget = ""
         
         return retarget
     
