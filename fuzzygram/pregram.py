@@ -3,7 +3,7 @@ Tool for processing strings prior to fuzzy matching with fuzzygram
 """
 import re
 
-def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
+def stn_firm(target, unabbreviate=False, noordinal=True, nolegal=False, parentheses=False):
     symbols = [
         ",",
         ".",
@@ -121,6 +121,23 @@ def stn_firm(target, unabbreviate=False, nolegal=False, parentheses=False):
             retarget = re.sub(" (MGMT|MGT)( |$)", " MANAGEMENT ", retarget)
             retarget = re.sub(" MKT( |$)", " MARKET ", retarget)
             retarget = re.sub(" SR?VCS( |$)", " SERVICES ", retarget)
+        
+        # Remove ordinals
+        if noordinal == True:
+            search = re.match("^(.*)([0-9])(ND|RD|ST|TH)( |$)(.*)$", retarget)
+            if search is not None:
+                retarget = search[1] + search[2] + " " + search[5]
+            
+            retarget = retarget.replace("FIRST", "1")
+            retarget = retarget.replace("SECOND", "2")
+            retarget = retarget.replace("THIRD", "3")
+            retarget = retarget.replace("FOURTH", "4")
+            retarget = retarget.replace("FIFTH", "5")
+            retarget = retarget.replace("SIXTH", "6")
+            retarget = retarget.replace("SEVENTH", "7")
+            retarget = retarget.replace("EIGTH", "8")
+            retarget = retarget.replace("NINTH", "9")
+            retarget = retarget.replace("TENTH", "10")
         
         # Strip white space
         retarget = retarget.strip()
