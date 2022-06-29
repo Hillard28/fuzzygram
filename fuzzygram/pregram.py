@@ -2,6 +2,7 @@
 Tool for processing strings prior to fuzzy matching with fuzzygram
 """
 import re
+import unicodedata
 
 def stn_firm(target, unabbreviate=False, noordinal=True, nolegal=False, parentheses=False):
     symbols = [
@@ -211,20 +212,20 @@ def stn_street(target):
             retarget = re.sub(" [0-9]+\s*$", "", retarget)
         
         # Abbreviate cardinal directions
-        re.sub(" NORTH( |$)", " E ", retarget)
-        re.sub(" EAST( |$)", " E ", retarget)
-        re.sub(" SOUTH( |$)", " E ", retarget)
-        re.sub(" WEST( |$)", " E ", retarget)
+        retarget = re.sub(" NORTH( |$)", " N ", retarget)
+        retarget = re.sub(" EAST( |$)", " E ", retarget)
+        retarget = re.sub(" SOUTH( |$)", " S ", retarget)
+        retarget = re.sub(" WEST( |$)", " W ", retarget)
         
-        re.sub(" NORTHEAST( |$)", " E ", retarget)
-        re.sub(" NORTH EAST( |$)", " E ", retarget)
-        re.sub(" SOUTHEAST( |$)", " E ", retarget)
-        re.sub(" SOUTH EAST( |$)", " E ", retarget)
+        retarget = re.sub(" NORTHEAST( |$)", " NE ", retarget)
+        retarget = re.sub(" NORTH EAST( |$)", " NE ", retarget)
+        retarget = re.sub(" SOUTHEAST( |$)", " SE ", retarget)
+        retarget = re.sub(" SOUTH EAST( |$)", " SE ", retarget)
         
-        re.sub(" NORTHWEST( |$)", " E ", retarget)
-        re.sub(" NORTH WEST( |$)", " E ", retarget)
-        re.sub(" SOUTHWEST( |$)", " E ", retarget)
-        re.sub(" SOUTH WEST( |$)", " E ", retarget)
+        retarget = re.sub(" NORTHWEST( |$)", " NW ", retarget)
+        retarget = re.sub(" NORTH WEST( |$)", " NW ", retarget)
+        retarget = re.sub(" SOUTHWEST( |$)", " SW ", retarget)
+        retarget = re.sub(" SOUTH WEST( |$)", " SW ", retarget)
         
         # Remove only numbers
         if retarget.isdigit() == True:
@@ -277,3 +278,193 @@ def stn_phone(target):
     
     else:
         return target
+
+def stn_names(target, drop=False, fl=True, comma=False):
+    first = ""
+    middle = ""
+    last = ""
+    suffix = ""
+    credentials = ""
+    
+    symbols = [
+        ".",
+        ":",
+        ";",
+        "(",
+        ")",
+        "*",
+        "\\",
+        "-",
+        "?",
+        "\'",
+        "\"",
+        "[",
+        "]",
+        "{",
+        "}",
+        "!",
+        "_",
+        "/",
+        "`",
+        "<",
+        ">"
+    ]
+    
+    credentials_list = [
+        "CPA",
+        "DR",
+        "ESQ",
+        "MBA",
+        "MD",
+        "PHD"
+    ]
+    
+    suffix_list = [
+        "SR",
+        "JR",
+        "II",
+        "III",
+        "IV"
+    ]
+    
+    if type(target) is str:
+        # Convert to uppercase
+        retarget = target.upper()
+        
+        # Remove symbols
+        for symbol in symbols:
+            retarget = retarget.replace(symbol, "").strip()
+            retarget = " ".join(retarget.split())
+        
+        # Remove MRS|MR|Owner at end
+        if re.search("[A-Z]?(MRS|MR|OWNER)$", retarget) is not None:
+            retarget = re.sub("(MRS|MR|OWNER)$", "", retarget)
+            retarget = " ".join(retarget.split())
+        
+        # Extract credentials
+        for credential in credentials_list:
+            if re.search(" [A-Z]?" + credential + "$", retarget) is not None:
+                credentials = credentials + " " + credential
+                retarget = re.sub(credential + "$", "", retarget)
+            elif re.search(" " + credential + " ", retarget) is not None:
+                credentials = credentials + " " + credential
+                retarget = re.sub(" " + credential + " ", " ", retarget)
+        if re.search(" [A-Z]?JD$", retarget) is not None:
+            credentials = credentials + " " + "JD"
+            retarget = re.sub("JD$", "", retarget)
+        
+        # Extract suffixes
+        for suff in suffix_list:
+            if re.search(" [A-Z]?" + suff + "$", retarget) is not None and re.search(" ZIV$", retarget) is None:
+                suffix = suffix + " " + suff
+                suffix = suffix.strip()
+                retarget = re.sub(suff + "$", "", retarget).strip()
+            elif re.search(" " + suff + "[, ]", retarget) is not None and re.search(" ZIV$", retarget) is None:
+                suffix = suffix + " " + suff
+                retarget = re.sub(" " + suff + "[, ]", ", ", retarget)
+                retarget = " ".join(retarget.split())
+        
+        if comma == False:
+            retarget = retarget.replace(",", "")
+        
+        # Extract names
+        if comma and fl == False:
+            search = re.search("^([^,]+)", retarget)
+            if search is not None:
+                last = search[0]
+                retarget = re.sub("^([^,]+)", ", ", retarget)
+            
+            search = re.search("^([^,]+)", retarget)
+            if search is not None:
+                first = search[0]
+                retarget = re.sub("^([^,]+)(, |$)", "", retarget)
+            
+            search = re.search("[^, ]+)$", retarget)
+            if search is not None:
+                middle = search[0]
+        
+        elif comma == False and fl == False:
+            search = re.search("^((DE LA|DE LOS|DE|DI|ST|VAN DER|VAN|VON)? ?[-'A-Z]+)", retarget)
+            if search is not None:
+                last = search[0]
+                retarget = retarget.replace(last, "", 1).strip()
+            
+            search = re.search("^([-'A-Z]+)", retarget)
+            if search is not None:
+                first = search[0]
+            
+            middle = retarget.replace(first, "", 1).strip()
+        
+        elif fl:
+            search = re.search("^([-'A-Z]+)", retarget)
+            if search is not None:
+                first = search[0]
+                retarget = re.sub("^[-'A-Z]+ ", " ", retarget)
+            
+            search = re.search(" ((DE LA|DE LOS|DE|DI|ST|VAN DER|VAN|VON)? ?[-'A-Z]+)$", retarget)
+            if search is not None:
+                last = search[0]
+                retarget = retarget.replace(last, "", 1).strip()
+            
+            middle = retarget
+        
+        # Strip white space
+        first = first.strip()
+        first = " ".join(first.split())
+        middle = middle.strip()
+        middle = " ".join(middle.split())
+        last = last.strip()
+        last = " ".join(last.split())
+        suffix = suffix.strip()
+        suffix = " ".join(suffix.split())
+        credentials = credentials.strip()
+        
+        if drop:
+            return first + " " + middle + " " + last + " " + suffix
+        else:
+            return [first, middle, last, suffix, credentials]
+
+def soundex(target):
+
+    if not target:
+        return ""
+
+    target = unicodedata.normalize("NFKD", target)
+    target = target.upper()
+
+    replacements = (
+        ("BFPV", "1"),
+        ("CGJKQSXZ", "2"),
+        ("DT", "3"),
+        ("L", "4"),
+        ("MN", "5"),
+        ("R", "6"),
+    )
+    result = [target[0]]
+    count = 1
+
+    # find would-be replacment for first character
+    for lset, sub in replacements:
+        if target[0] in lset:
+            last = sub
+            break
+    else:
+        last = None
+
+    for letter in target[1:]:
+        for lset, sub in replacements:
+            if letter in lset:
+                if sub != last:
+                    result.append(sub)
+                    count += 1
+                last = sub
+                break
+        else:
+            if letter != "H" and letter != "W":
+                # leave last alone if middle letter is H or W
+                last = None
+        if count == 4:
+            break
+
+    result += "0" * (4 - count)
+    return "".join(result)
